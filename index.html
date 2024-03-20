@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <title>IT Hit WebDAV Ajax Library</title>
+    <script src="./ITHitWebDAVClient.js" type="text/javascript"></script>
+    <script type="text/javascript">
+      const licenseId = "b1009040-cf11-4a13-8103-b48221684e7f"
+      // URL del server 
+      const sFolderUrl = 'https://www.ajaxbrowser.com/Userd3955cb'
+      // Lists files on a WebDAV server using WebDAV Ajax Library
+      function ListFolder() {
+        const ns = ITHit.WebDAV.Client;
+        const session = new ns.WebDavSession();
+        session.OpenFolderAsync(
+          sFolderUrl,
+          null,
+          function (asyncResult) {
+            console.log(asyncResult)
+            if (!asyncResult.IsSuccess) {
+              ProcessError(asyncResult.Error);
+              return;
+            }
+
+            const folder = asyncResult.Result;
+            folder.GetChildrenAsync(
+              false,
+              null,
+
+              function (asyncResult) {
+                if (!asyncResult.IsSuccess) {
+                  ProcessError(asyncResult.Error);
+                  return;
+                }
+                const items = asyncResult.Result;
+                const content = document.getElementById("folderContent");
+                let rows = "";
+                for (let i = 0; i < items.length; i++) {
+                  const item = items[i];
+                  rows +=
+                    "<tr>" +
+                    "<td><a " +
+                    (item.ResourceType == ns.ResourceType.Folder
+                      ? "href='javascript:ListFolder(\"" + item.Href + "\")'"
+                      : "") +
+                    ">" +
+                    item.DisplayName +
+                    "</a></td>" +
+                    "<td class='alignRight'>" +
+                    (item.ResourceType == ns.ResourceType.Folder
+                      ? ""
+                      : item.ContentLength) +
+                    "</td>" +
+                    "<td class='alignRight'>" +
+                    item.LastModified.toLocaleString() +
+                    "</td>" +
+                    "<td>" +
+                    "<a href='javascript: EditDoc(\"" +
+                        item.Href +
+                        "\")' title='Edit in associated application'>Edit</a>" +
+                    "</td>" +
+                    "</tr>";
+                }
+                content.innerHTML =
+                  "<table><thead><tr><td>Name</td><td class='alignRight'>Size, b</td><td class='alignRight'>Modified</td><td></td></tr></thead>" +
+                  rows +
+                  "</table>";
+              }
+            );
+          }
+        );
+      }
+
+      function ProcessError(err) {
+        alert(
+          err.Status.Code + " " + err.Status.Description + "\n" + err.Message
+        );
+      }
+
+      // Opens document for editing using MS Office or dav: protocol
+      // sDocumentUrl must be full path including domain name: http://webdavserver.com/path/file.ext
+      function EditDoc(sDocumentUrl) {
+
+
+
+        ITHit.WebDAV.Client.LicenseId = licenseId;
+        ITHit.WebDAV.Client.DocManager.MicrosoftOfficeEditDocument(sDocumentUrl)
+        // ITHit.WebDAV.Client.DocManager.EditDocument(
+        //   sDocumentUrl,
+        //   "/",
+        //   ProtocolInstallCallback
+        // );
+      }
+
+      // Opens folder in OS file manager
+      // sFolderUrl must be full path including domain name: http://webdavserver.com/path/
+      function OpenFolder(sFolderUrl) {
+        ITHit.WebDAV.Client.DocManager.OpenFolderInOsFileManager(
+          sFolderUrl,
+          "/",
+          protocolInstallCallback
+        );
+
+        function protocolInstallCallback(message) {
+          const installerFilePath = "/Plugins/" + ITHit.WebDAV.Client.DocManager.GetProtocolInstallFileNames()[0];
+          if (confirm("This action requires a protocol installation. Select OK to download the protocol installer.")){
+              window.open(installerFilePath);
+          }
+        }
+      }
+
+      // Called if protocol handler is not installed
+      function ProtocolInstallCallback(message) {
+        const installerFilePath =
+          "./Plugins/" +
+          ITHit.WebDAV.Client.DocManager.GetInstallFileName();
+        if (
+          confirm(
+            "This action requires a protocol installation. Select OK to download the protocol installer."
+          )
+        ) {
+          window.open(installerFilePath);
+        }
+      }
+    </script>
+    <style type="text/css">
+      .alignRight {
+        text-align: right;
+      }
+      #folderContent thead td {
+        font-weight: bolder;
+      }
+      #folderContent td {
+        padding-right: 20px;
+      }
+    </style>
+  </head>
+  <body onload="ListFolder()">
+    <p id="folderContent"></p>
+  </body>
+</html>

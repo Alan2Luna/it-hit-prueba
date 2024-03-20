@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <title>IT Hit WebDAV Ajax Library</title>
+    <script src="./ITHitWebDAVClient.js" type="text/javascript"></script>
+    <script type="text/javascript">
+      const licenseId = "b1009040-cf11-4a13-8103-b48221684e7f"
+      // direccion del server it hit https://www.webdavserver.com/User4dfa0e0
+      // agregar archivos a server, borra cada cierto tiempo
+      const sFileAbsolutePath = 'https://www.webdavserver.com/User4dfa0e0/63da4d48d4779.rtf';
+      let fCallback = function() {};
+
+      const webDavSession = new ITHit.WebDAV.Client.WebDavSession();
+      ITHit.WebDAV.Client.LicenseId = "b1009040-cf11-4a13-8103-b48221684e7f";
+      webDavSession.OpenFileAsync(sFileAbsolutePath, null, function(oFileAsyncResult) {
+ 
+        const oFile = oFileAsyncResult.Result;
+        console.log(oFile)
+
+        oFile.LockAsync(ITHit.WebDAV.Client.LockScope.Shared, false, 'User 1', 60, (oAsyncResult) => {
+            const oLockInfo = oAsyncResult.Result;
+ 
+            if (oAsyncResult.IsSuccess) {
+                console.log('Locks token is: ' + oLockInfo.LockToken.LockToken);
+            }
+
+        })
+
+      })
+
+      function editDoc() {
+       
+        ITHit.WebDAV.Client.DocManager.EditDocument(sFileAbsolutePath,"/");
+      }
+
+    // function editDoc() {
+    //     const sDocumentUrl = "https://server/path/file.docx"; // this must be full path
+    //     const oNs = ITHit.WebDAV.Client.DocManager;
+    //     if (oNs.IsMicrosoftOfficeDocument(sFileAbsolutePath)) {
+    //         console.log('1')
+    //         oNs.MicrosoftOfficeEditDocument(sFileAbsolutePath);            
+    //     } else {
+    //         oNs.DavProtocolEditDocument([sFileAbsolutePath], "/", protocolInstallCallback);
+    //     }
+    // }
+
+    </script>
+  </head>
+  <body>
+    <div id="main">
+        <button onclick="editDoc()">Edit</button>
+    </div>
+  </body>
+</html>
